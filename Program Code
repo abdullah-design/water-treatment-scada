@@ -1,0 +1,40 @@
+# Program Code
+    tagPaths = [
+        "[default]Water_Plant/Tank_Level",
+        "[default]Water_Plant/Treatment_Level",
+        "[default]Water_Plant/Clean_Water_Level",
+        "[default]Water_Plant/Pump_1_Status",
+        "[default]Water_Plant/Pump_2_Status"
+    ]
+    
+    results = system.tag.readBlocking(tagPaths)
+    
+    tank_level      = results[0].value if results[0].value is not None else 0
+    treatment_level = results[1].value if results[1].value is not None else 0
+    clean_level     = results[2].value if results[2].value is not None else 0
+    pump1           = results[3].value if results[3].value is not None else False
+    pump2           = results[4].value if results[4].value is not None else False
+    
+    if pump1 and tank_level > 0:
+        tank_level = max(0, tank_level - 4)
+        treatment_level = min(100, treatment_level + 4)
+        
+    if pump2 and treatment_level > 0:
+        treatment_level = max(0, treatment_level - 2)
+        clean_level = min(100, clean_level + 2)
+        
+    if tank_level <= 0 and treatment_level <= 0:
+        tank_level = 100
+        clean_level = 0 
+    
+    alarm_active = True if tank_level >= 90 else False
+    
+    writePaths = [
+        "[default]Water_Plant/Tank_Level",
+        "[default]Water_Plant/Treatment_Level",
+        "[default]Water_Plant/Clean_Water_Level",
+        "[default]Water_Plant/Alarm_Active"
+    ]
+    writeValues = [tank_level, treatment_level, clean_level, alarm_active]
+    
+    system.tag.writeBlocking(writePaths, writeValues)
